@@ -1,19 +1,32 @@
 const std = @import("std");
+const vec3 = @import("vector.zig");
 
 pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    const image_width = 256;
+    const image_height = 256;
+    const max_color = 255;
 
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+    const stdout = std.io.getStdOut();
+    defer stdout.close();
 
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
+    _ = try stdout.writeAll("P3\n");
+    var writer = stdout.writer();
+    try std.fmt.format(writer, "{} {}\n{}\n", .{ image_width, image_height, max_color });
 
-    try bw.flush(); // don't forget to flush!
+    var j: i32 = 0;
+    while (j < image_height) {
+        {
+            var i: i32 = 0;
+            while (i < image_width) {
+                const red = @intToFloat(f64, i) / (image_width - 1);
+                const green = @intToFloat(f64, j) / (image_height - 1);
+                const blue = 0.25;
+                try std.fmt.format(writer, "{} {} {}\n", .{ @floatToInt(i32, red * 255), @floatToInt(i32, green * 255), @floatToInt(i32, blue * 255) });
+                i += 1;
+            }
+        }
+        j += 1;
+    }
 }
 
 test "simple test" {
