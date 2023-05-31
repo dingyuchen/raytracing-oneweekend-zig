@@ -14,14 +14,25 @@ pub fn main() !void {
     try std.fmt.format(writer, "{} {}\n{}\n", .{ image_width, image_height, max_color });
 
     var j: i32 = 0;
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const alloc = gpa.allocator();
+
     while (j < image_height) {
         {
+            std.debug.print("remaining:{}\n", .{image_height - j});
             var i: i32 = 0;
             while (i < image_width) {
                 const red = @intToFloat(f64, i) / (image_width - 1);
                 const green = @intToFloat(f64, j) / (image_height - 1);
                 const blue = 0.25;
-                try std.fmt.format(writer, "{} {} {}\n", .{ @floatToInt(i32, red * 255), @floatToInt(i32, green * 255), @floatToInt(i32, blue * 255) });
+                const vec = vec3.Vec(i32){
+                    .x = @floatToInt(i32, red * 255),
+                    .y = @floatToInt(i32, green * 255),
+                    .z = @floatToInt(i32, blue * 255),
+                };
+                const line = try vec.string(alloc);
+                defer alloc.free(line);
+                try std.fmt.format(writer, "{s}\n", .{line});
                 i += 1;
             }
         }
